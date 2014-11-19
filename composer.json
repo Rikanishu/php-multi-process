@@ -1,0 +1,23 @@
+{
+    "name": "rikanishu/php-multi-process",
+    "description": "PHP library for running differrent external process parallel",
+    "keywords": ["multi-process"],
+    "type": "library",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Rikanishu",
+            "email": "rikanishu@gmail.com"
+        }
+    ],
+    "require": {
+       "php": ">=5.4.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "autoload": {
+        "psr-4": { "rikanishu\\multiprocess\\": "src" }
+    }
+}
+
