@@ -45,6 +45,8 @@ class ExecutionResult
     }
 
     /**
+     * Return process exit code
+     *
      * @return int
      */
     public function getExitCode()
@@ -53,6 +55,8 @@ class ExecutionResult
     }
 
     /**
+     * Return process stderr
+     *
      * @return string
      */
     public function getStderr()
@@ -61,6 +65,8 @@ class ExecutionResult
     }
 
     /**
+     * Return process stdin
+     *
      * @return string
      */
     public function getStdin()

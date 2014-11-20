@@ -1,10 +1,11 @@
 <?php
 
 namespace rikanishu\multiprocess;
+
 use rikanishu\multiprocess\exception\ExecutionTimeoutException;
 
 /**
- * Class Pool
+ * Pool
  *
  * This class represents a pool of commands for execution that have to be run parallel
  *
@@ -51,6 +52,16 @@ class Pool
     const OPTION_DEBUG = 'Debug';
 
     /**
+     * Pool constructor
+     *
+     * Accept commands in the following formats:
+     *
+     * ['echo "Some payload"', 'echo "Another payload"']
+     * [['echo', '"Some payload"'], ['echo', "Another payload"]]
+     * [['echo "Some payload"', $commandOptionsArray], ['echo "Another payload"'], $anotherCommandOptionsArray]
+     * [[['echo', '"Some payload"'], $options], [['echo', "Another payload"], $options]]
+     * [Command $cmd1, Command $cmd2]
+     *
      * @param array $commands
      * @param array $options
      */
@@ -67,26 +78,65 @@ class Pool
         $this->options = $options;
     }
 
+    /**
+     * Add commands to commands array
+     *
+     * @param $cmd
+     */
     public function addCommand($cmd)
     {
         $this->commands[] = $this->createCommandObject($cmd);
     }
 
+    /**
+     * Return commands array
+     *
+     * @return Command[]
+     */
     public function getCommands()
     {
         return $this->commands;
     }
 
+    /**
+     * Reset commands array
+     */
     public function resetCommands()
     {
         $this->commands = [];
     }
 
+    /**
+     * Return count of commands
+     *
+     * @return int
+     */
     public function getCommandsCount()
     {
         return count($this->commands);
     }
 
+    /**
+     * Return list of commands with state executed
+     *
+     * @return Command[]
+     */
+    public function getExecutedCommands()
+    {
+        $result = [];
+        foreach ($this->commands as $command) {
+            if ($command->isExecuted()) {
+                $result[] = $command;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Run execution process
+     *
+     * @throws exception\ExecutionTimeoutException
+     */
     public function run()
     {
         if (!$this->commands) {
@@ -104,8 +154,8 @@ class Pool
             2 => ['pipe', 'w']
         ];
 
-        $procs = array();
-        $readStreams = array();
+        $procs = [];
+        $readStreams = [];
 
         foreach ($this->commands as $commandNum => $command) {
             $pipes = [];
@@ -114,11 +164,11 @@ class Pool
                 $command->getCwdPath(), $command->getEnvVariables()
             );
 
-            $procs[$commandNum] = array(
+            $procs[$commandNum] = [
                 'process' => $process,
                 'pipes' => $pipes,
                 'cmd' => $command
-            );
+            ];
 
             $command->setState(Command::STATE_EXECUTE_NOW);
 
@@ -139,7 +189,7 @@ class Pool
             if ($selectResult === false) {
                 usleep($selectUsleepTime);
             }
-            if ((time() - $startTime) >= $executionTimeout) {
+            if ($executionTimeout > 0 && (time() - $startTime) >= $executionTimeout) {
                 foreach ($procs as $proc) {
                     proc_close($proc['process']);
                 }
@@ -174,6 +224,11 @@ class Pool
         }
     }
 
+    /**
+     * Return array of default options
+     *
+     * @return array
+     */
     public function getDefaultOptions()
     {
         return [
@@ -185,6 +240,52 @@ class Pool
     }
 
     /**
+     * Set execution timeout option
+     *
+     * @param int $executionTimeout
+     */
+    public function setExecutionTimeout($executionTimeout)
+    {
+        $this->getOption(Pool::OPTION_EXECUTION_TIMEOUT, $executionTimeout);
+    }
+
+    /**
+     * Set poll timeout option
+     *
+     * @see Pool::OPTION_POLL_TIMEOUT
+     * @param int $pollTimeout
+     */
+    public function setPollTimeout($pollTimeout)
+    {
+        $this->setOption(Pool::OPTION_POLL_TIMEOUT, $pollTimeout);
+    }
+
+    /**
+     * Set select usleep time
+     *
+     * @see Pool::OPTION_SELECT_USLEEP_TIME
+     * @param int $usleepTime
+     */
+    public function setSelectUsleepTime($usleepTime)
+    {
+        $this->setOption(Pool::OPTION_SELECT_USLEEP_TIME, $usleepTime);
+    }
+
+    /**
+     * Set debug enabled option
+     *
+     * @see Pool::OPTION_DEBUG
+     * @param bool $isDebugEnabled
+     */
+    public function setDebugEnabled($isDebugEnabled)
+    {
+        $this->setOption(Pool::OPTION_DEBUG, $isDebugEnabled);
+    }
+
+    /**
+     * Return execution time option
+     *
+     * @see Pool::OPTION_EXECUTION_TIMEOUT
      * @return int
      */
     public function getExecutionTimeout()
@@ -193,6 +294,9 @@ class Pool
     }
 
     /**
+     * Return poll timeout option
+     *
+     * @see Pool::OPTION_POLL_TIMEOUT
      * @return int
      */
     public function getPollTimeout()
@@ -201,6 +305,9 @@ class Pool
     }
 
     /**
+     * Return usleep time for select
+     *
+     * @see Pool::OPTION_SELECT_USLEEP_TIME
      * @return int
      */
     public function getSelectUsleepTime()
@@ -209,6 +316,9 @@ class Pool
     }
 
     /**
+     * Return debug enabled option
+     *
+     * @see Pool::OPTION_DEBUG
      * @return bool
      */
     public function isDebugEnabled()
@@ -236,7 +346,7 @@ class Pool
     {
         if ($this->isDebugEnabled()) {
             print_r($debugInfo);
-            echo '\r\n';
+            echo "\r\n";
         }
     }
 
@@ -256,8 +366,13 @@ class Pool
         }
 
         if (is_array($cmd) && count($cmd) == 2) {
-            $cmd = reset($cmd);
+            $cmdText = reset($cmd);
             $cmdOptions = next($cmd);
+            if (is_string($cmdOptions)) {
+                $cmdOptions = [];
+            } else {
+                $cmd = $cmdText;
+            }
         } else {
             $cmdOptions = [];
         }

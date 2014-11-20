@@ -2,8 +2,10 @@
 
 namespace rikanishu\multiprocess;
 
+use rikanishu\multiprocess\exception\ExecutionFailedException;
+
 /**
- * Class Command
+ * Command
  *
  * Base process class
  * Represents one command-line process
@@ -66,13 +68,6 @@ class Command
      * @var ExecutionResult
      */
     protected $executionResult;
-
-    /**
-     * Process options
-     *
-     * @var array
-     */
-    protected $options = [];
 
     /**
      * Create new command
@@ -200,13 +195,17 @@ class Command
     /**
      * Run a single command
      *
+     * @param array $poolOptions
+     * @throws exception\ExecutionFailedException
      * @return ExecutionResult
      */
     public function run($poolOptions = [])
     {
         $pool = new Pool([$this], $poolOptions);
         $pool->run();
-
+        if (!$this->isExecuted()) {
+            throw new ExecutionFailedException('Command is not executed');
+        }
         return $this->getExecutionResult();
     }
 

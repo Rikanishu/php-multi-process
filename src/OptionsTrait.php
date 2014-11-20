@@ -3,7 +3,7 @@
 namespace rikanishu\multiprocess;
 
 /**
- * Trait OptionsTrait
+ * OptionsTrait
  *
  * Used in Command and Execution classes for options storing
  *
