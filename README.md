@@ -5,13 +5,13 @@ PHP library for parallel shell commands execution
 Either run
 
 ```
-php composer.phar require rikanushu/php-multi-process "*"
+php composer.phar require rikanishu/php-multi-process "*"
 ```
 
 or add
 
 ```
-"rikanushu/php-multi-process": "*"
+"rikanishu/php-multi-process": "*"
 ```
 
 to the ```require``` section of your ```composer.json``` file.
