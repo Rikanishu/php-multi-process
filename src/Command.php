@@ -197,7 +197,7 @@ class Command
      * Run a single command
      *
      * @param array $poolOptions
-     * @throws exception\ExecutionFailedException
+     * @throws NonExecutedException
      * @return ExecutionResult
      */
     public function run($poolOptions = [])
@@ -205,7 +205,7 @@ class Command
         $pool = new Pool([$this], $poolOptions);
         $pool->run();
         if (!$this->isExecuted()) {
-            throw new ExecutionFailedException('Command is not executed');
+            throw new NonExecutedException('Command is not executed');
         }
         return $this->getExecutionResult();
     }

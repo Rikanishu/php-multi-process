@@ -16,9 +16,7 @@ or add
 
 to the ```require``` section of your ```composer.json``` file.
 
-### Usage: ###
-
-#### Parallel process execution: ###
+### Example: ###
 
 ```php
 $cmd1 = ['echo', '"Some Command"'];
@@ -60,4 +58,8 @@ $commands = $pool->getCommands();
 $commands[0]->getExecutionResult()->getOutput(); // Some Command
 $commands[1]->getExecutionResult()->getOutput(); // Another Command
 $commands[2]->getExecutionResult()->getOutput(); // PWD is: /tmp
+
+/* And also library provides single command execution */
+$command = new rikanishu\multiprocess\Command('echo "Hello World!"');
+$command->run()->getOutput(); // Hello World
 ```
