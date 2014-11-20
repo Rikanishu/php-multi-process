@@ -3,6 +3,7 @@
 namespace rikanishu\multiprocess;
 
 use rikanishu\multiprocess\exception\ExecutionFailedException;
+use rikanishu\multiprocess\exception\NonExecutedException;
 
 /**
  * Command
@@ -115,9 +116,9 @@ class Command
     public function setExecutionResult($executionResult)
     {
         if (!$this->isExecuted()) {
-            throw new \Exception('Set execution result for non-executed process. Switch state to executed first');
+            throw new NonExecutedException('Set execution result for non-executed process. Switch state to executed first');
         }
-        $this->executionResult = $executionResult;
+        $this->executionResult = $this->prepareExecutionResult($executionResult);
     }
 
     /**
@@ -127,7 +128,7 @@ class Command
     public function getExecutionResult()
     {
         if (!$this->isExecuted()) {
-            throw new \Exception('Get execution result for non-executed process. Check state of execution first');
+            throw new NonExecutedException('Get execution result for non-executed process. Check state of execution first');
         }
         return $this->executionResult;
     }
@@ -264,5 +265,16 @@ class Command
         $this->cmd = $cmd;
 
         return $cmd;
+    }
+
+    /**
+     * Prepare execution result before assign
+     *
+     * @param ExecutionResult $executionResult
+     * @return ExecutionResult
+     */
+    protected function prepareExecutionResult($executionResult)
+    {
+        return $executionResult;
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "rikanishu/php-multi-process",
-    "description": "PHP library for running differrent external process parallel",
+    "description": "PHP library for running different external process parallel",
     "keywords": ["multi-process"],
     "type": "library",
     "license": "BSD-3-Clause",

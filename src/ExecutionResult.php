@@ -16,7 +16,7 @@ class ExecutionResult
      *
      * @var string
      */
-    protected $stdin = '';
+    protected $stdout = '';
 
     /**
      * Process STDERR output
@@ -34,13 +34,13 @@ class ExecutionResult
 
     /**
      * @param int $exitCode
-     * @param string $stdin
+     * @param string $stdout
      * @param string $stderr
      */
-    public function __construct($exitCode, $stdin, $stderr)
+    public function __construct($exitCode, $stdout, $stderr)
     {
         $this->exitCode = $exitCode;
-        $this->stdin = $stdin;
+        $this->stdout = $stdout;
         $this->stderr = $stderr;
     }
 
@@ -57,30 +57,39 @@ class ExecutionResult
     /**
      * Return process stderr
      *
+     * @param bool $trim
      * @return string
      */
-    public function getStderr()
+    public function getStderr($trim = true)
     {
+        if ($this->stderr && $trim) {
+            return trim($this->stderr);
+        }
         return $this->stderr;
     }
 
     /**
-     * Return process stdin
+     * Return process stdout
      *
+     * @param bool $trim
      * @return string
      */
-    public function getStdin()
+    public function getStdout($trim = true)
     {
-        return $this->stdin;
+        if ($this->stdout && $trim) {
+            return trim($this->stdout);
+        }
+        return $this->stdout;
     }
 
     /**
-     * Alias for getStdin()
+     * Alias for getStdout()
      *
+     * @param bool $trim
      * @return string
      */
-    public function getOutput()
+    public function getOutput($trim = true)
     {
-        return $this->getStdin();
+        return $this->getStdout($trim);
     }
 }

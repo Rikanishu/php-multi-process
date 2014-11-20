@@ -158,24 +158,26 @@ class Pool
         $readStreams = [];
 
         foreach ($this->commands as $commandNum => $command) {
-            $pipes = [];
-            $process = proc_open(
-                $command->getCommand(), $descriptors, $pipes,
-                $command->getCwdPath(), $command->getEnvVariables()
-            );
+            if ($command->getCommand()) {
+                $pipes = [];
+                $process = proc_open(
+                    $command->getCommand(), $descriptors, $pipes,
+                    $command->getCwdPath(), $command->getEnvVariables()
+                );
 
-            $procs[$commandNum] = [
-                'process' => $process,
-                'pipes' => $pipes,
-                'cmd' => $command
-            ];
+                $procs[$commandNum] = [
+                    'process' => $process,
+                    'pipes' => $pipes,
+                    'cmd' => $command
+                ];
 
-            $command->setState(Command::STATE_EXECUTE_NOW);
+                $command->setState(Command::STATE_EXECUTE_NOW);
 
-            $readStreams['stdin' . $commandNum] = $pipes[1];
-            $readStreams['stderr' . $commandNum] = $pipes[2];
+                $readStreams['stdin' . $commandNum] = $pipes[1];
+                $readStreams['stderr' . $commandNum] = $pipes[2];
 
-            $this->debug("Run process: " . $command->getCommand());
+                $this->debug("Run process: " . $command->getCommand());
+            }
         }
 
         $startTime = time();
@@ -246,7 +248,7 @@ class Pool
      */
     public function setExecutionTimeout($executionTimeout)
     {
-        $this->getOption(Pool::OPTION_EXECUTION_TIMEOUT, $executionTimeout);
+        $this->setOption(Pool::OPTION_EXECUTION_TIMEOUT, $executionTimeout);
     }
 
     /**
@@ -377,6 +379,18 @@ class Pool
             $cmdOptions = [];
         }
 
+        return $this->createNewCommand($cmd, $cmdOptions);
+    }
+
+    /**
+     * Create new Command instance from passed arguments
+     *
+     * @param string $cmd
+     * @param array $cmdOptions
+     * @return Command
+     */
+    protected function createNewCommand($cmd, $cmdOptions = [])
+    {
         return new Command($cmd, $cmdOptions);
     }
 }
