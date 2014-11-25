@@ -22,8 +22,8 @@ to the ```require``` section of your ```composer.json``` file.
 $cmd1 = ['echo', '"Some Command"'];
 $cmd2 = 'echo "Another Command"';
 $cmd3 = ['echo "$SOME_ENV_VAR" "$PWD"', [
-    rikanishu\multiprocess\Command ::OPTION_CWD => '/tmp',
-    rikanishu\multiprocess\Command ::OPTION_ENV =>  [
+    rikanishu\multiprocess\Command::OPTION_CWD => '/tmp',
+    rikanishu\multiprocess\Command::OPTION_ENV =>  [
         'SOME_ENV_VAR' => 'PWD is:'
     ],
 ]];
