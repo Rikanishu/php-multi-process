@@ -22,8 +22,8 @@ to the ```require``` section of your ```composer.json``` file.
 $cmd1 = ['echo', '"Some Command"'];
 $cmd2 = 'echo "Another Command"';
 $cmd3 = ['echo "$SOME_ENV_VAR" "$PWD"', [
-    rikanishu\multiprocess\Command::OPTION_CWD => '/tmp',
-    rikanishu\multiprocess\Command::OPTION_ENV =>  [
+    rikanishu\multiprocess\Command ::OPTION_CWD => '/tmp',
+    rikanishu\multiprocess\Command ::OPTION_ENV =>  [
         'SOME_ENV_VAR' => 'PWD is:'
     ],
 ]];
@@ -33,10 +33,8 @@ $pool->run();
 
 /* @var $command rikanishu\multiprocess\Command */
 foreach ($pool->getCommands() as $command) {
-    if ($command->isExecuted()) {
-        $res = $command->getExecutionResult();
-        echo $res->getExitCode() . " | " . $res->getStdout() . " | " . $res->getStderr() . "\n";
-    }
+    $res = $command->getExecutionResult();
+    echo $res->getExitCode() . " | " . $res->getStdout() . " | " . $res->getStderr() . "\n";
 }
 
 /*  Output:
@@ -44,12 +42,6 @@ foreach ($pool->getCommands() as $command) {
     0 | Another Command |
     0 | PWD is: /tmp |
 */
-
-/* Or you just can use getExecutedCommands method instead of checking */
-foreach ($pool->getExecutedCommands() as $command) {
-    $res = $command->getExecutionResult();
-    echo $res->getExitCode() . " | " . $res->getStdout() . " | " . $res->getStderr() . "\n";
-}
 
 /* If you haven't checked isExecuted and get the execution result for non-executed command,
    NonExecutedException will be raised */
@@ -61,5 +53,5 @@ $commands[2]->getExecutionResult()->getOutput(); // PWD is: /tmp
 
 /* And also library provides single command execution */
 $command = new rikanishu\multiprocess\Command('echo "Hello World!"');
-$command->run()->getOutput(); // Hello World
+$command->runBlocking()->getOutput(); // Hello World
 ```
