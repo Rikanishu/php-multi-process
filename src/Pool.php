@@ -3,6 +3,8 @@
 namespace rikanishu\multiprocess;
 
 use rikanishu\multiprocess\exception\ExecutionTimeoutException;
+use rikanishu\multiprocess\exception\NonExecutedException;
+use rikanishu\multiprocess\pool\ExecutionContext;
 
 /**
  * Pool
@@ -14,13 +16,6 @@ use rikanishu\multiprocess\exception\ExecutionTimeoutException;
 class Pool
 {
     use OptionsTrait;
-
-    /**
-     * Command for execution
-     *
-     * @var Command[]
-     */
-    protected $commands = [];
 
     /**
      * Timelimit for process execution
@@ -45,11 +40,29 @@ class Pool
     const OPTION_SELECT_USLEEP_TIME = 'SelectUsleepTime';
 
     /**
+     * Blocking mode flag
+     *
+     * If blocking mode used, process will be stopped for all execution time.
+     * If not, current process can be interact with Future to wait results or check execution status
+     *
+     * Default is false
+     */
+    const OPTION_BLOCKING_MODE = 'BlockingMode';
+
+    /**
      * Is debug mode enabled
      *
      * False by default
      */
     const OPTION_DEBUG = 'Debug';
+
+
+    /**
+     * Command for execution
+     *
+     * @var Command[]
+     */
+    protected $commands = [];
 
     /**
      * Pool constructor
@@ -91,7 +104,7 @@ class Pool
     /**
      * Return commands array
      *
-     * @return Command[]
+     * @return array|Command[]
      */
     public function getCommands()
     {
@@ -117,113 +130,19 @@ class Pool
     }
 
     /**
-     * Return list of commands with state executed
-     *
-     * @return Command[]
-     */
-    public function getExecutedCommands()
-    {
-        $result = [];
-        foreach ($this->commands as $command) {
-            if ($command->isExecuted()) {
-                $result[] = $command;
-            }
-        }
-        return $result;
-    }
-
-    /**
      * Run execution process
      *
      * @throws exception\ExecutionTimeoutException
+     * @return Future[]
      */
     public function run()
     {
         if (!$this->commands) {
-            return;
+            throw new NonExecutedException('Pool has no execution command');
         }
 
-        $executionTimeout = $this->getExecutionTimeout();
-        $pollTimeout = $this->getPollTimeout();
-        $isSelectSupported = $this->isSelectSupported();
-        $selectUsleepTime = $this->getSelectUsleepTime();
-
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w']
-        ];
-
-        $procs = [];
-        $readStreams = [];
-
-        foreach ($this->commands as $commandNum => $command) {
-            if ($command->getCommand()) {
-                $pipes = [];
-                $process = proc_open(
-                    $command->getCommand(), $descriptors, $pipes,
-                    $command->getCwdPath(), $command->getEnvVariables()
-                );
-
-                $procs[$commandNum] = [
-                    'process' => $process,
-                    'pipes' => $pipes,
-                    'cmd' => $command
-                ];
-
-                $command->setState(Command::STATE_EXECUTE_NOW);
-
-                $readStreams['stdin' . $commandNum] = $pipes[1];
-                $readStreams['stderr' . $commandNum] = $pipes[2];
-
-                $this->debug("Run process: " . $command->getCommand());
-            }
-        }
-
-        $startTime = time();
-        $read = $readStreams;
-        $write = $except = null;
-        while ($procs) {
-            $selectResult = false;
-            if ($isSelectSupported) {
-                $selectResult = stream_select($read, $write, $except, $pollTimeout);
-            }
-            if ($selectResult === false) {
-                usleep($selectUsleepTime);
-            }
-            if ($executionTimeout > 0 && (time() - $startTime) >= $executionTimeout) {
-                foreach ($procs as $proc) {
-                    proc_close($proc['process']);
-                }
-                throw new ExecutionTimeoutException('Execution timeout has expired');
-            }
-            $this->debug('Read streams');
-            $this->debug($readStreams);
-            foreach ($procs as $procNum => $proc) {
-                $status = proc_get_status($proc['process']);
-                $this->debug($status);
-                if (!$status['running']) {
-                    $stdin = stream_get_contents($proc['pipes'][1]);
-                    $stderr = stream_get_contents($proc['pipes'][2]);
-                    /** @var $cmd Command */
-                    $cmd = $proc['cmd'];
-                    $exitCode = (isset($status['exitcode'])) ? $status['exitcode'] : 0;
-                    $executionResult = new ExecutionResult($exitCode, $stdin, $stderr);
-                    $cmd->setState(Command::STATE_EXECUTED);
-                    $cmd->setExecutionResult($executionResult);
-                    proc_close($proc['process']);
-                    unset($procs[$procNum]);
-                    if (isset($readStreams['stdin' . $procNum])) {
-                        unset($readStreams['stdin' . $procNum]);
-                    }
-                    if (isset($readStreams['stderr' . $procNum])) {
-                        unset($readStreams['stderr' . $procNum]);
-                    }
-                }
-            }
-            $read = $readStreams;
-            $this->debug("Poll... " . count($procs) . " procs");
-        }
+        $executionContext = $this->createNewExecutionContext();
+        return $executionContext->run();
     }
 
     /**
@@ -237,6 +156,7 @@ class Pool
             Pool::OPTION_EXECUTION_TIMEOUT => -1,
             Pool::OPTION_POLL_TIMEOUT => 60,
             Pool::OPTION_SELECT_USLEEP_TIME => 200,
+            Pool::OPTION_BLOCKING_MODE => false,
             Pool::OPTION_DEBUG => false
         ];
     }
@@ -285,6 +205,18 @@ class Pool
     }
 
     /**
+     * Set blocking mode flag
+     *
+     * @see Pool::OPTION_BLOCKING_MODE
+     * @param bool $isBlockingEnabled
+     */
+    public function setBlockingMode($isBlockingEnabled)
+    {
+        $this->setOption(Pool::OPTION_BLOCKING_MODE, $isBlockingEnabled);
+    }
+
+
+    /**
      * Return execution time option
      *
      * @see Pool::OPTION_EXECUTION_TIMEOUT
@@ -329,27 +261,25 @@ class Pool
     }
 
     /**
+     * Set blocking mode flag
+     *
+     * @see Pool::OPTION_BLOCKING_MODE
+     * @return bool
+     */
+    public function isBlockingModeEnabled()
+    {
+        return ($this->getOption(Pool::OPTION_BLOCKING_MODE) === true);
+    }
+
+    /**
      * This method resolve the poll method - select / timeout
      * It depends from OS select supporting
      *
      * @return bool
      */
-    protected function isSelectSupported()
+    public function isSelectSupported()
     {
         return (!(strtoupper(substr(php_uname('s'), 0, 3)) === 'WIN'));
-    }
-
-    /**
-     * Print to output debug info if debug mode enabled
-     *
-     * @param $debugInfo
-     */
-    protected function debug($debugInfo)
-    {
-        if ($this->isDebugEnabled()) {
-            print_r($debugInfo);
-            echo "\r\n";
-        }
     }
 
     /**
@@ -361,9 +291,6 @@ class Pool
     protected function createCommandObject($cmd)
     {
         if ($cmd instanceof Command) {
-            if ($cmd->isExecuted()) {
-                $cmd = $cmd->createNewCommand();
-            }
             return $cmd;
         }
 
@@ -392,5 +319,15 @@ class Pool
     protected function createNewCommand($cmd, $cmdOptions = [])
     {
         return new Command($cmd, $cmdOptions);
+    }
+
+    /**
+     * Return new PoolExecutionContext instance linked with this pool
+     *
+     * @return ExecutionContext
+     */
+    protected function createNewExecutionContext()
+    {
+        return new ExecutionContext($this);
     }
 }

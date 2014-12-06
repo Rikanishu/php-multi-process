@@ -20,21 +20,6 @@ class Command
     use OptionsTrait;
 
     /**
-     * State for not executed process
-     */
-    const STATE_NOT_EXECUTED = 0;
-
-    /**
-     * State for process that executing just now
-     */
-    const STATE_EXECUTE_NOW = 1;
-
-    /**
-     * Get this status when process is executed and output is gained
-     */
-    const STATE_EXECUTED = 2;
-
-    /**
      * Env variables array
      *
      * Default is null
@@ -49,6 +34,13 @@ class Command
     const OPTION_CWD = 'Cwd';
 
     /**
+     * Options for proc command
+     *
+     * Default is null
+     */
+    const OPTION_PROC = 'Proc';
+
+    /**
      * Process command
      *
      * @var string
@@ -56,19 +48,11 @@ class Command
     protected $cmd;
 
     /**
-     * Current process execution state
+     * Execution future object
      *
-     * @see STATE_* Const
-     * @var int
+     * @var Future
      */
-    protected $state;
-
-    /**
-     * Result of the execution if process executed successfully
-     *
-     * @var ExecutionResult
-     */
-    protected $executionResult;
+    protected $future;
 
     /**
      * Create new command
@@ -80,11 +64,11 @@ class Command
     {
         $this->initCommand($cmd);
         $this->initOptions($options);
-
-        $this->state = Command::STATE_NOT_EXECUTED;
     }
 
     /**
+     * Replace command string to new one
+     *
      * @param string $cmd
      */
     public function replaceCommand($cmd)
@@ -93,6 +77,8 @@ class Command
     }
 
     /**
+     * Append string part to current command
+     *
      * @param string $part
      */
     public function appendCommand($part)
@@ -101,6 +87,8 @@ class Command
     }
 
     /**
+     * Return command string
+     *
      * @return string
      */
     public function getCommand()
@@ -108,79 +96,26 @@ class Command
         return $this->cmd;
     }
 
-
     /**
-     * @param ExecutionResult $executionResult
-     * @throws \Exception
-     */
-    public function setExecutionResult($executionResult)
-    {
-        if (!$this->isExecuted()) {
-            throw new NonExecutedException('Set execution result for non-executed process. Switch state to executed first');
-        }
-        $this->executionResult = $this->prepareExecutionResult($executionResult);
-    }
-
-    /**
-     * @throws \Exception
+     * Return command execution result
+     *
+     * Block process and wait result if it's not exists
+     *
      * @return ExecutionResult
      */
     public function getExecutionResult()
     {
-        if (!$this->isExecuted()) {
-            throw new NonExecutedException('Get execution result for non-executed process. Check state of execution first');
-        }
-        return $this->executionResult;
+        return $this->getFuture()->getResult();
     }
 
     /**
-     * Return current process state
-     *
-     * @return int
-     */
-    public function getState()
-    {
-        return $this->state;
-    }
-
-    /**
-     * Switch current process state
-     *
-     * @param int $newState
-     */
-    public function setState($newState)
-    {
-        $this->state = $newState;
-    }
-
-    /**
-     * Return true if process already executed
+     * Check is execution result exists
      *
      * @return bool
      */
-    public function isExecuted()
+    public function hasExecutionResult()
     {
-        return ($this->state === Command::STATE_EXECUTED);
-    }
-
-    /**
-     * Return true if process executing just now
-     *
-     * @return bool
-     */
-    public function isExecuteNow()
-    {
-        return ($this->state === Command::STATE_EXECUTE_NOW);
-    }
-
-    /**
-     * Return true if process is not executed yet
-     *
-     * @return bool
-     */
-    public function isNotExecuted()
-    {
-        return ($this->state === Command::STATE_NOT_EXECUTED);
+        return ($this->hasFuture() && $this->getFuture()->hasResult());
     }
 
     /**
@@ -197,17 +132,24 @@ class Command
      * Run a single command
      *
      * @param array $poolOptions
-     * @throws NonExecutedException
-     * @return ExecutionResult
+     * @return Future
      */
     public function run($poolOptions = [])
     {
         $pool = new Pool([$this], $poolOptions);
         $pool->run();
-        if (!$this->isExecuted()) {
-            throw new NonExecutedException('Command is not executed');
-        }
-        return $this->getExecutionResult();
+        return $this->getFuture();
+    }
+
+    /**
+     * Run a single command with results waiting
+     *
+     * @param array $poolOptions
+     * @return ExecutionResult
+     */
+    public function runBlocking($poolOptions = [])
+    {
+        return $this->run($poolOptions)->getResult();
     }
 
     /**
@@ -248,6 +190,70 @@ class Command
     public function setEnvVariables($envVariables)
     {
         $this->setOption(Command::OPTION_ENV, $envVariables);
+    }
+
+    /**
+     * Return proc options array or null
+     *
+     * @return array|null
+     */
+    public function getProcOptions()
+    {
+        return $this->getOption(Command::OPTION_PROC);
+    }
+
+    /**
+     * Set proc options
+     *
+     * @param array $procOptions
+     */
+    public function setProcOptions($procOptions)
+    {
+        $this->setOption(Command::OPTION_PROC, $procOptions);
+    }
+
+    /**
+     * Check if command has a future object
+     *
+     * @return bool
+     */
+    public function hasFuture()
+    {
+        return ($this->future !== null);
+    }
+
+    /**
+     * Set execution future object
+     *
+     * @param \rikanishu\multiprocess\Future $future
+     */
+    public function setFuture($future)
+    {
+        $this->future = $future;
+    }
+
+    /**
+     * Return execution future object
+     *
+     * @throws \Exception
+     * @return \rikanishu\multiprocess\Future
+     */
+    public function getFuture()
+    {
+        if (!$this->future) {
+            throw new \Exception('Future has not assigned yet');
+        }
+        return $this->future;
+    }
+
+    /**
+     * String repr of command
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return '[ ' . $this->cmd . ' ]';
     }
 
     /**
