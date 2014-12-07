@@ -1,7 +1,7 @@
 {
     "name": "rikanishu/php-multi-process",
     "description": "PHP library for parallel shell commands execution",
-    "keywords": ["multi-process"],
+    "keywords": ["multi-process", "process-execution", "task"],
     "type": "library",
     "license": "BSD-3-Clause",
     "authors": [
