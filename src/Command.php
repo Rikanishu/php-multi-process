@@ -2,9 +2,6 @@
 
 namespace rikanishu\multiprocess;
 
-use rikanishu\multiprocess\exception\ExecutionFailedException;
-use rikanishu\multiprocess\exception\NonExecutedException;
-
 /**
  * Command
  *
@@ -257,6 +254,17 @@ class Command
     }
 
     /**
+     * Prepare execution result before assign
+     *
+     * @param ExecutionResult $executionResult
+     * @return ExecutionResult
+     */
+    public function prepareExecutionResult($executionResult)
+    {
+        return $executionResult;
+    }
+
+    /**
      * Prepare command before assign
      *
      * @param $cmd
@@ -273,14 +281,4 @@ class Command
         return $cmd;
     }
 
-    /**
-     * Prepare execution result before assign
-     *
-     * @param ExecutionResult $executionResult
-     * @return ExecutionResult
-     */
-    protected function prepareExecutionResult($executionResult)
-    {
-        return $executionResult;
-    }
 }

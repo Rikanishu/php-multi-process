@@ -12,7 +12,7 @@ use rikanishu\multiprocess\Pool;
 /**
  * Execution context for pool
  *
- * Every runned pool has one execution context
+ * Every running pool has one execution context
  * that contains execution status for all command and global
  * execution options
  * @package rikanishu\multiprocess
@@ -119,7 +119,7 @@ class ExecutionContext
      * Wait execution for target command or for all commands
      *
      * @param Command $targetCommand
-     * @throws \rikanishu\multiprocess\exception\ExecutionTimeoutException
+     * @throws ExecutionTimeoutException
      */
     public function waitExecution($targetCommand = null)
     {

@@ -2,7 +2,6 @@
 
 namespace rikanishu\multiprocess;
 
-use rikanishu\multiprocess\exception\ExecutionTimeoutException;
 use rikanishu\multiprocess\exception\NonExecutedException;
 use rikanishu\multiprocess\pool\ExecutionContext;
 
@@ -18,22 +17,26 @@ class Pool
     use OptionsTrait;
 
     /**
-     * Timelimit for process execution
+     * Limit of time in seconds for execution process.
+     * Values are less than zero interpret as unlimited time out.
      *
      * Unlimited by default (-1)
      */
     const OPTION_EXECUTION_TIMEOUT = 'ExecTimeout';
 
     /**
-     * Timelimit for poll each process
+     * Maximum timeout in seconds for every select poll cycle.
+     * This means time for waiting any react of running process and if it has no any react
+     * (out text to stdout / stderr or stop execution for example),
+     * retry the poll cycle after reading process status.
      *
      * 60 seconds by default
      */
     const OPTION_POLL_TIMEOUT = 'PollTimeout';
 
     /**
-     * Time in microseconds to sleep when select return false or not supported by
-     * system
+     * Time for poll cycle in microseconds if select call returns false or does not
+     * supported by system for proc polling (for example on Windows).
      *
      * Default is 200
      */
@@ -43,7 +46,7 @@ class Pool
      * Blocking mode flag
      *
      * If blocking mode used, process will be stopped for all execution time.
-     * If not, current process can be interact with Future to wait results or check execution status
+     * If not, current process can r interact with Future to wait results or check execution status
      *
      * Default is false
      */
@@ -132,7 +135,7 @@ class Pool
     /**
      * Run execution process
      *
-     * @throws exception\ExecutionTimeoutException
+     * @throws exception\NonExecutedException
      * @return Future[]
      */
     public function run()

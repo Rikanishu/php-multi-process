@@ -15,10 +15,9 @@ use rikanishu\multiprocess\pool\ExecutionContext;
 class Future
 {
     /**
-     * Current process execution state
+     * Current process execution flag
      *
-     * @see STATE_* Const
-     * @var int
+     * @var bool
      */
     protected $executed = false;
 
@@ -70,6 +69,7 @@ class Future
      */
     public function resolve($executionResult)
     {
+        $executionResult = $this->command->prepareExecutionResult($executionResult);
         $this->result = $executionResult;
         $this->executed = true;
     }
