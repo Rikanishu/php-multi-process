@@ -60,13 +60,13 @@ $command->runBlocking()->getOutput(); // Hello World
 
 ### Description ###
 
-This library is designed to executing single / multiple parallel process on blocking / non-blocking mode. The library provides an interface for convenient configuring external process execution. The basic concepts are Pool and Command objects. Pool is a set of commands that creates their and delegates execution to ExecutionContext, which build Process objects for each command and run it. Command object represents single external command.
+This library is designed to execute single / multiple parallel process on blocking / non-blocking mode. The library provides an interface for convenient configuring external process execution. The basic concepts are Pool and Command objects. Pool is a set of commands that creates and delegates execution to ExecutionContext, which build Process objects for each command and run it. Command object represents single external command.
 
 The library uses proc_* API and select sys call provides by standard PHP library. It has no external depending.
 
 #### Usage ####
 
-General usage scenario suggests that you pass some commands to a Pool instance which will be executed parallel on blocking / non-blocking mode depend on params pass on. Here is example of non-blocking execution of three commands:
+General usage scenario suggests that you pass some commands to a Pool instance which will be executed parallel on blocking / non-blocking mode depend on params passed on. Here is example of non-blocking execution of three commands:
 
 ```php
 $cmd1 = ['echo', '"Some Command"'];
