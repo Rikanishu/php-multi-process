@@ -45,9 +45,6 @@ foreach ($pool->getCommands() as $command) {
     0 | PWD is: /tmp |
 */
 
-/* If you haven't checked isExecuted and get the execution result for non-executed command,
-   NonExecutedException will be raised */
-
 $commands = $pool->getCommands();
 $commands[0]->getExecutionResult()->getOutput(); // Some Command
 $commands[1]->getExecutionResult()->getOutput(); // Another Command
