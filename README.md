@@ -162,7 +162,7 @@ Pool takes options array as second parameter. You can set some options to Pool b
 ```php
 $pool = new rikanishu\multiprocess\Pool([$cmd1, $cmd2, $cmd3], [
 	rikanishu\multiprocess\Pool::OPTION_EXECUTION_TIMEOUT => 120,
-	rikanishu\multiprocess\Pool:: OPTION_BLOCKING_MODE => true
+	rikanishu\multiprocess\Pool::OPTION_BLOCKING_MODE => true
 ]);
 
 ```
