@@ -1,5 +1,5 @@
 # php-multi-process #
-PHP library for parallel shell commands execution
+PHP library for parallel shell command execution
 [![Build Status](https://travis-ci.org/Rikanishu/php-multi-process.svg?branch=master)](https://travis-ci.org/Rikanishu/php-multi-process)
 -----
 
@@ -29,8 +29,10 @@ $cmd3 = ['echo "$SOME_ENV_VAR" "$PWD"', [
         'SOME_ENV_VAR' => 'PWD is:'
     ],
 ]];
+$cmd4 = new rikanishu\multiprocess\Command('cat');
+$cmd4->setStdin('hello world');
 
-$pool = new rikanishu\multiprocess\Pool([$cmd1, $cmd2, $cmd3]);
+$pool = new rikanishu\multiprocess\Pool([$cmd1, $cmd2, $cmd3, $cmd4]);
 $pool->run();
 
 /* @var $command rikanishu\multiprocess\Command */
@@ -49,6 +51,7 @@ $commands = $pool->getCommands();
 $commands[0]->getExecutionResult()->getOutput(); // Some Command
 $commands[1]->getExecutionResult()->getOutput(); // Another Command
 $commands[2]->getExecutionResult()->getOutput(); // PWD is: /tmp
+$commands
 
 /* And also library provides single command execution */
 $command = new rikanishu\multiprocess\Command('echo "Hello World!"');
@@ -57,13 +60,13 @@ $command->runBlocking()->getOutput(); // Hello World
 
 ### Description ###
 
-This library is designed to execute single / multiple parallel process on blocking / non-blocking mode. The library provides an interface for convenient configuring external process execution. The basic concepts are Pool and Command objects. Pool is a set of commands that creates and delegates execution to ExecutionContext, which build Process objects for each command and run it. Command object represents single external command.
+This library is designed to execute single / multiple parallel process on blocking / non-blocking mode. The library provides an interface for convenient configuring external process execution. The basic concepts are Pool and Command objects. Pool is a set of commands that creates and delegates execution to ExecutionContext, ExecutionContext builds Process objects for each command and runs it. Command object represents single external command.
 
-The library uses proc_* API and select sys call provides by standard PHP library. It has no external depending.
+The library uses proc_* API and select sys call that are provided by standard PHP library. It has no external dependency.
 
 #### Usage ####
 
-General usage scenario suggests that you pass some commands to a Pool instance which will be executed parallel on blocking / non-blocking mode depend on params passed on. Here is example of non-blocking execution of three commands:
+General usage scenario suggests that you pass some commands to a Pool instance which will be executed parallel on blocking / non-blocking mode depends on params passed on. Here is example of non-blocking execution of four commands:
 
 ```php
 $cmd1 = ['echo', '"Some Command"'];
@@ -74,8 +77,10 @@ $cmd3 = ['echo "$SOME_ENV_VAR" "$PWD"', [
         'SOME_ENV_VAR' => 'PWD is:'
     ],
 ]];
+$cmd4 = new rikanishu\multiprocess\Command('cat');
+$cmd4->setStdin('hello world');
 
-$pool = new rikanishu\multiprocess\Pool([$cmd1, $cmd2, $cmd3]);
+$pool = new rikanishu\multiprocess\Pool([$cmd1, $cmd2, $cmd3, $cmd4]);
 $pool->run();
 
 /* @var $command rikanishu\multiprocess\Command */
@@ -86,19 +91,19 @@ foreach ($pool->getCommands() as $command) {
 
 ```
 
-``` $cmd1 ```, ``` $cmd2 ``` and  ``` $cmd3 ``` show different format of commands applied by Pool.  You can also pass instance of Command right away because Pool implicitly convert shell command text to Command instances and check input data for this class first.
+``` $cmd1 ```, ``` $cmd2 ```,  ``` $cmd3 ```, and ``` $cmd4 ``` show different format of commands applied by Pool.  You can also pass instance of Command right away because Pool implicitly converts shell command text to Command instances and checks input data for this class first.
 
 
 ```php
 …
-$cmd4 = new rikanishu\multiprocess\Command(‘echo instance’);
+$cmd5 = new rikanishu\multiprocess\Command(‘echo instance’);
 …
 
-$pool = new rikanishu\multiprocess\Pool([$cmd1, $cmd2, $cmd3, $cmd4]);
+$pool = new rikanishu\multiprocess\Pool([$cmd1, $cmd2, $cmd3, $cmd4, $cmd5]);
 $pool->run();
 ```
 
-The Pool’s ``` run() ``` method returns Futures array that represents each command, e.g. ``` $future[3] ```  represents ``` $cmd4 ``` from example above. You can always use ``` $command->getFuture() ``` method to get current future for executed command. Non executed command does not have Future and if you call ``` getFuture() ``` for non-executed Command, Exception will be raised. You can call ``` hasFuture() ``` for checking when your code does not know, is command running or not.
+The Pool’s ``` run() ``` method returns Futures array that represents each command, e.g. ``` $future[3] ```  represents ``` $cmd4 ``` from example above. You can always use ``` $command->getFuture() ``` method to get current future for executed command. Non executed command does not have Future and if you call ``` getFuture() ``` for non-executed Command, Exception will be raised. You can call ``` hasFuture() ``` for checking when your code does not know, has command been ran or hasn't.
 
 ```php
 $cmd1 = ['echo', '"Some Command"'];
@@ -119,7 +124,7 @@ print_r($command[1]->getExecutionResult()); // Alias of Future’s getResult()
 
 ```
 
-On non blocking mode ``` $pool->run() ``` call creates process array and returns control to called procedure. The process will execute at the meantime in background and when you call Future’s ``` getResult() ``` method, it blocks execution process while result has not received or time limit has not expired. You can always check Future’s ``` hasResult() ``` if you want to avoid blocking and continue your useful calculating process.
+On non blocking mode ``` $pool->run() ``` call creates a process array and returns control to calling procedure. The process will execute at the meantime in background and when you call Future’s ``` getResult() ``` method, it blocks execution process until result is received or time limit is expired. You can always check Future’s ``` hasResult() ``` if you want to avoid blocking and continue your useful calculating process.
 
 
 ```php
@@ -226,4 +231,6 @@ $pool->run();
  - ``` OPTION_CWD ``` - Current working directory for command. Default is null and CWD inherits from parent process. Alias method for this option is ``` $command->setCwdPath(‘/tmp’) ```.
 
  - ``` OPTION_PROC ``` - Options for proc_open command. See full list in [PHP Documentation](http://php.net/manual/en/function.proc-open.php). Alias method for this option is ``` $command->setProcOptions([]) ```.
+
+ - ``` OPTION_STDIN ``` - Stdin for command. Alias method for this option is ``` $command->setStdin('') ```.
 

@@ -38,6 +38,13 @@ class Command
     const OPTION_PROC = 'Proc';
 
     /**
+     * Stdin for command
+     *
+     * Default is null
+     */
+    const OPTION_STDIN = 'Stdin';
+
+    /**
      * Process command
      *
      * @var string
@@ -188,6 +195,27 @@ class Command
     {
         $this->setOption(Command::OPTION_ENV, $envVariables);
     }
+
+    /**
+     * Return command stdin
+     *
+     * @return string|null
+     */
+    public function getStdin()
+    {
+        return $this->getOption(Command::OPTION_STDIN);
+    }
+
+    /**
+     * Return command stdin
+     *
+     * @param string $stdin
+     */
+    public function setStdin($stdin)
+    {
+        $this->setOption(Command::OPTION_STDIN, $stdin);
+    }
+
 
     /**
      * Return proc options array or null

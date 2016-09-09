@@ -11,8 +11,10 @@ $cmd3 = ['echo "$SOME_ENV_VAR" "$PWD"', [
         'SOME_ENV_VAR' => 'PWD is:'
     ],
 ]];
+$cmd4 = new rikanishu\multiprocess\Command('cat');
+$cmd4->setStdin('hello world');
 
-$pool = new rikanishu\multiprocess\Pool([$cmd1, $cmd2, $cmd3]);
+$pool = new rikanishu\multiprocess\Pool([$cmd1, $cmd2, $cmd3, $cmd4]);
 $pool->run();
 
 /* @var $command rikanishu\multiprocess\Command */
@@ -25,6 +27,7 @@ foreach ($pool->getCommands() as $command) {
     0 | Some Command |
     0 | Another Command |
     0 | PWD is: /tmp |
+    0 | hello world |
 */
 
 /* If you haven't checked isExecuted and get the execution result for non-executed command,
@@ -34,6 +37,7 @@ $commands = $pool->getCommands();
 $commands[0]->getExecutionResult()->getOutput(); // Some Command
 $commands[1]->getExecutionResult()->getOutput(); // Another Command
 $commands[2]->getExecutionResult()->getOutput(); // PWD is: /tmp
+$commands[3]->getExecutionResult()->getOutput(); // hello world
 
 /* And also library provides single command execution */
 $command = new rikanishu\multiprocess\Command('echo "Hello World!"');

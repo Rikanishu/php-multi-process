@@ -99,6 +99,14 @@ class Process
             throw new ExecutionFailedException('Proc open failed on' . $command);
         }
 
+        if (isset($this->pipes[0])) {
+            $stdin = $command->getStdin();
+            if ($stdin !== null) {
+                fwrite($this->pipes[0], $stdin);
+                fclose($this->pipes[0]);
+            }
+        }
+
         $this->isRunning = true;
     }
 

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-php vendor/bin/phpunit --bootstrap ./tests/bootstrap.php tests
+php vendor/bin/phpunit --verbose --bootstrap ./tests/bootstrap.php tests

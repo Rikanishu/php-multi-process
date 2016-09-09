@@ -80,6 +80,17 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($cmd->getExecutionResult()->getStdout(), '/tmp');
     }
 
+    public function testStdin()
+    {
+        $cmd = new Command('cat');
+        $cmd->setStdin("hello world");
+        $cmd->runBlocking();
+
+        $this->assertTrue($cmd->hasExecutionResult());
+        $this->assertNotNull($cmd->getExecutionResult());
+        $this->assertEquals($cmd->getExecutionResult()->getStdout(), 'hello world');
+    }
+
     public function testEnvVar()
     {
         $cmd = new Command('echo "$MULTIPROCESS_SOME_VAR"');
