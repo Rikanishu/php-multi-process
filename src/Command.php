@@ -45,7 +45,7 @@ class Command
     const OPTION_STDIN = 'Stdin';
 
     /**
-    * Don't wait end of execution and don't check process state to recognize whether it runs or doesn't.
+    * Don't wait the end of execution and don't check process state to recognize whether it runs or doesn't.
     * Just read stdin/stdout and stop process.
     * Useful in working with pipes to stop execution process after it gives any output.
     * 

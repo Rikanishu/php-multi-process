@@ -234,3 +234,4 @@ $pool->run();
 
  - ``` OPTION_STDIN ``` - Stdin for command. Alias method for this option is ``` $command->setStdin('') ```.
 
+ - ``` OPTION_DONT_CHECK_RUNNING ``` - Don't wait the end of execution and don't check process state to recognize whether it runs or doesn't, just read stdin/stdout and stop process. Useful in working with pipes to stop execution process after it gives any output. Alias method for this option is ``` $command->setDontCheckRunning(true) ```.
