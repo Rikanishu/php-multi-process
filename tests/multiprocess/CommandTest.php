@@ -77,6 +77,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
 
         $this->assertTrue($cmd->hasExecutionResult());
         $this->assertNotNull($cmd->getExecutionResult());
+        $this->assertEquals($cmd->getExecutionResult()->getStderr(), '');
         $this->assertEquals($cmd->getExecutionResult()->getStdout(), '/tmp');
     }
 
@@ -88,6 +89,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
 
         $this->assertTrue($cmd->hasExecutionResult());
         $this->assertNotNull($cmd->getExecutionResult());
+        $this->assertEquals($cmd->getExecutionResult()->getStderr(), '');
         $this->assertEquals($cmd->getExecutionResult()->getStdout(), 'hello world');
     }
 
@@ -100,6 +102,7 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $cmd->runBlocking();
         $this->assertTrue($cmd->hasExecutionResult());
         $this->assertNotNull($cmd->getExecutionResult());
+        $this->assertEquals($cmd->getExecutionResult()->getStderr(), '');
         $this->assertEquals($cmd->getExecutionResult()->getStdout(), 'MultiProcess-Test');
     }
 
@@ -127,5 +130,18 @@ class CommandTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($newCmd->getCommand(), 'echo "Hello World!"');
         $this->assertFalse($newCmd->hasFuture());
         $this->assertEquals($newCmd->getCwdPath(), '/tmp');
+    }
+
+    public function testDontCheckRunning()
+    {
+        $cmd = new Command('bash "' . __DIR__ . '/../infinite_cat.sh"');
+        $cmd->setStdin("hello world");
+        $cmd->setDontCheckRunning(true);
+        $cmd->runBlocking();
+
+        $this->assertTrue($cmd->hasExecutionResult());
+        $this->assertNotNull($cmd->getExecutionResult());
+        $this->assertEquals($cmd->getExecutionResult()->getStderr(), '');
+        $this->assertEquals($cmd->getExecutionResult()->getStdout(), 'hello world');
     }
 }
