@@ -133,7 +133,7 @@ class Process
         }
 
         $procStatus = @proc_get_status($this->proc);
-        if (!$procStatus['running']) {
+        if ($this->getCommand()->isDontCheckRunning() || !$procStatus['running']) {
             $this->stdout = stream_get_contents($this->pipes[1]);
             $this->stderr = stream_get_contents($this->pipes[2]);
             $this->exitCode = (isset($procStatus['exitcode'])) ? $procStatus['exitcode'] : 0;

@@ -47,7 +47,7 @@ class Command
     /**
     * Don't wait end of execution and don't check process state to recognize whether it runs or doesn't.
     * Just read stdin/stdout and stop process.
-    * Useful in working with pipes.
+    * Useful in working with pipes to stop execution process after it gives any output.
     * 
     * Default is false
     */
@@ -247,6 +247,26 @@ class Command
     }
 
     /**
+     * Get Dont Check Running option
+     *
+     * @return bool
+     */
+    public function isDontCheckRunning()
+    {
+        return $this->getOption(Command::OPTION_DONT_CHECK_RUNNING);
+    }
+
+    /**
+     * Set Dont Check Running option
+     *
+     * @param bool $dontCheckRunning
+     */
+    public function setDontCheckRunning($dontCheckRunning)
+    {
+        $this->setOption(Command::OPTION_DONT_CHECK_RUNNING, $dontCheckRunning);
+    }
+
+    /**
      * Check if command has a future object
      *
      * @return bool
@@ -299,6 +319,18 @@ class Command
     public function prepareExecutionResult($executionResult)
     {
         return $executionResult;
+    }
+
+    /**
+     * Return array of default options
+     *
+     * @return array
+     */
+    public function getDefaultOptions()
+    {
+        return [
+            static::OPTION_DONT_CHECK_RUNNING => false
+        ];
     }
 
     /**
