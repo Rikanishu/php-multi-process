@@ -134,24 +134,29 @@ class ExecutionContext
         $isTargetExecuted = false;
         while ($this->procs && !$isTargetExecuted) {
 
+            $this->debug('Wait execution');
             $selectResult = false;
             if ($this->isSelectSupported) {
+                $this->debug('Use stream select');
+                $this->debug($readStreams);
+                $this->debug('Poll timeout: '. $this->pollTimeout);
                 $selectResult = stream_select($read, $write, $excepted, $this->pollTimeout);
             }
 
             if ($selectResult === false) {
+                $this->debug('Run usleep for: ' . $this->usleepTime);
                 usleep($this->usleepTime);
             }
 
             if ($this->executionTimeout > 0 && (time() - $this->executionStartTime) >= $this->executionTimeout) {
+                $this->debug('Execution timeout has expired, try to kill processes');
                 foreach ($this->procs as $proc) {
                     $proc->close();
                 }
                 throw new ExecutionTimeoutException('Execution timeout has expired');
             }
 
-            $this->debug('Read streams');
-            $this->debug($readStreams);
+            $this->debug('Read statuses');
             foreach ($this->procs as $procNum => $proc) {
                 $status = $proc->readStatus();
                 $this->debug($status);
