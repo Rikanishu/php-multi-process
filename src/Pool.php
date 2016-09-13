@@ -91,7 +91,7 @@ class Pool
             $commandObjects[] = $this->createCommandObject($cmd);
         }
         $this->commands = $commandObjects;
-        $this->options = $options;
+        $this->initOptions($options);
     }
 
     /**
